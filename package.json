@@ -16,6 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mikhama/core-js-101.git"
+    "url": "git+https://github.com/mikhama/core-js-101.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mikhama/core-js-101/issues"
+  },
+  "homepage": "https://github.com/mikhama/core-js-101#readme",
+  "main": ".eslintrc.js",
+  "directories": {
+    "test": "test"
   }
 }
