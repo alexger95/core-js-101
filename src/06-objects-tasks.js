@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => width * height;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.assign(Object.create(proto), JSON.parse(json));
 }
 
 
@@ -111,32 +113,89 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  string: '',
+
+  elementcount: 0,
+  idcount: 0,
+  classcount: 0,
+  attributecount: 0,
+  pseudoclasscount: 0,
+  pseudoElementcount: 0,
+
+
+  element(value) {
+    const lock = Object.create(this);
+    if (lock.elementcount) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    const shorter = lock.idcount || lock.classcount || lock.attributecount;
+    if (shorter || lock.pseudoclasscount || lock.pseudoElementcount) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    lock.elementcount = 1;
+    lock.string += value;
+    return lock;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const lock = Object.create(this);
+    if (lock.idcount) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    const shorter = lock.classcount || lock.attributecount;
+    if (shorter || lock.pseudoclasscount || lock.pseudoElementcount) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    lock.idcount = 1;
+    lock.string += `#${value}`;
+    return lock;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const lock = Object.create(this);
+    const shorter = lock.attributecount;
+    if (shorter || lock.pseudoclasscount || lock.pseudoElementcount) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    lock.classcount = 1;
+    lock.string += `.${value}`;
+    return lock;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const lock = Object.create(this);
+    if (lock.pseudoclasscount || lock.pseudoElementcount) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    lock.attributecount = 1;
+    lock.string += `[${value}]`;
+    return lock;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const lock = Object.create(this);
+    if (lock.pseudoElementcount) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    lock.pseudoclasscount = 1;
+    lock.string += `:${value}`;
+    return lock;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const lock = Object.create(this);
+    if (lock.pseudoElementcount) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    lock.pseudoElementcount = 1;
+    lock.string += `::${value}`;
+    return lock;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const lock = Object.create(this);
+    lock.string += `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return lock;
+  },
+
+  stringify() {
+    this.out = this.string;
+    this.string = '';
+    return this.out;
   },
 };
 
